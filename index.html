@@ -38,10 +38,8 @@
   ],
   "sameAs": ["https://www.facebook.com/", "https://www.instagram.com/"],
   "makesOffer": [
-    { "@type": "Offer", "name": "Residential New Project Estimate", "price": "0", "priceCurrency": "USD" },
-    { "@type": "Offer", "name": "Residential Repair Estimate", "price": "0", "priceCurrency": "USD" },
-    { "@type": "Offer", "name": "Commercial New Project Estimate", "price": "0", "priceCurrency": "USD" },
-    { "@type": "Offer", "name": "Commercial Repair Estimate", "price": "0", "priceCurrency": "USD" }
+    { "@type": "Offer", "name": "New Project Estimate", "price": "0", "priceCurrency": "USD" },
+    { "@type": "Offer", "name": "Repair Estimate", "price": "0", "priceCurrency": "USD" }
   ]
 }
 </script>
@@ -189,7 +187,7 @@
   .section-head p{color:var(--limestone-dim);}
 
   /* ---------- Services ---------- */
-  .service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .service-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:760px;margin:0 auto;}
   .service-card{
     background:var(--slate);
     border:1px solid var(--mortar-line);
@@ -218,7 +216,36 @@
   .process .step h4{margin-top:10px;font-size:1.05rem;}
   .process .step p{font-size:.88rem;color:var(--limestone-dim);margin:0;}
 
-  /* ---------- Booking ---------- */
+  /* ---------- Contact ---------- */
+  .contact-section{background:var(--basalt);}
+  .contact-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:56px;align-items:start;}
+  .contact-grid h2{font-size:clamp(1.7rem,3vw,2.3rem);}
+  .quick-form{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;}
+  .quick-form .full{grid-column:1/-1;}
+  .quick-form label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mortar);margin-bottom:6px;}
+  .quick-form label .req{color:var(--oxide);text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif;}
+  .quick-form input,.quick-form textarea{
+    width:100%;padding:12px 14px;background:var(--slate);border:1px solid var(--mortar-line);
+    border-radius:var(--radius-s);color:var(--limestone);font-family:'IBM Plex Sans',sans-serif;font-size:.92rem;
+  }
+  .quick-form input:focus,.quick-form textarea:focus{border-color:var(--oxide);}
+  .quick-form textarea{min-height:110px;resize:vertical;}
+  .quick-form button{margin-top:4px;}
+  .contact-thanks{display:none;padding:28px;border:1px solid var(--mortar-line);border-radius:var(--radius-m);background:var(--slate);margin-top:28px;}
+  .contact-thanks.show{display:block;}
+  .contact-thanks h3{margin-bottom:6px;}
+  .contact-thanks p{margin:0;color:var(--limestone-dim);}
+  .contact-side .social{margin-bottom:30px;}
+  .contact-side .block{margin-bottom:26px;}
+  .contact-side h4{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.12em;font-size:.78rem;color:var(--verdigris);margin-bottom:8px;}
+  .contact-side p{margin:0;color:var(--limestone-dim);font-size:.94rem;}
+  .contact-side p.hours-day{font-style:italic;color:var(--limestone);margin-bottom:2px;}
+  @media (max-width:880px){
+    .contact-grid{grid-template-columns:1fr;}
+    .quick-form{grid-template-columns:1fr;}
+  }
+
+
   .booking{background:var(--slate);border-top:1px solid var(--mortar-line);border-bottom:1px solid var(--mortar-line);}
   .progress{display:flex;gap:8px;margin-bottom:36px;max-width:520px;}
   .progress .seg{flex:1;height:8px;border-radius:2px;background:var(--slate-2);position:relative;overflow:hidden;}
@@ -364,6 +391,7 @@
         <li><a href="#services">Services</a></li>
         <li><a href="#process">Process</a></li>
         <li><a href="#booking">Availability</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
       <div class="navcta">
         <span class="phone mono">(555) 010-2847</span>
@@ -541,6 +569,73 @@
     </div>
   </div>
 </section>
+
+<div class="stone-course" aria-hidden="true">
+  <div class="row">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+</div>
+
+<section class="contact-section" id="contact">
+  <div class="wrap">
+    <div class="contact-grid">
+      <div>
+        <div class="eyebrow">Get In Touch</div>
+        <h2>Contact Us</h2>
+        <p style="color:var(--limestone-dim)">Prefer a quick message over booking a full walkthrough? Send us the basics and a lead mason will follow up directly.</p>
+
+        <form class="quick-form" id="quickContactForm">
+          <div>
+            <label for="qc-fname">First Name <span class="req">(Required)</span></label>
+            <input type="text" id="qc-fname" required>
+          </div>
+          <div>
+            <label for="qc-lname">Last Name</label>
+            <input type="text" id="qc-lname">
+          </div>
+          <div class="full">
+            <label for="qc-contact">Email / Phone Number <span class="req">(Required)</span></label>
+            <input type="text" id="qc-contact" placeholder="How should we reach you?" required>
+          </div>
+          <div class="full">
+            <label for="qc-project">Project Details</label>
+            <textarea id="qc-project" placeholder="What are you looking to build or repair? Rough budget, timeline, and location all help."></textarea>
+          </div>
+          <div class="full">
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </div>
+        </form>
+
+        <div class="contact-thanks" id="contactThanks">
+          <h3>Thank you!</h3>
+          <p>Your message is in. A lead mason will get back to you shortly — usually within one business day.</p>
+        </div>
+      </div>
+
+      <div class="contact-side">
+        <div class="social">
+          <a href="#" aria-label="Facebook">f</a>
+          <a href="#" aria-label="Instagram">ig</a>
+        </div>
+        <div class="block">
+          <h4>Location</h4>
+          <p>Serving the greater metro area</p>
+        </div>
+        <div class="block">
+          <h4>Hours</h4>
+          <p class="hours-day">Monday — Saturday</p>
+          <p>8:00 AM — 4:00 PM</p>
+          <p style="margin-top:10px;">Sunday — Closed</p>
+        </div>
+        <div class="block">
+          <h4>Direct</h4>
+          <p class="mono">(555) 010-2847</p>
+          <p class="mono">office@usstoneworks.example</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer>
@@ -598,14 +693,10 @@
 <script>
 (function(){
   const services = [
-    {id:'res-new', category:'Residential', name:'New Project Estimate', duration:'1 hr', price:'Free',
-      desc:'Patios, walls, veneer, or fireplaces — ground-up residential stonework.'},
-    {id:'res-repair', category:'Residential', name:'Repair Estimate', duration:'45 min', price:'Free',
-      desc:'Cracked mortar, settling walls, or storm damage on existing stonework.'},
-    {id:'com-new', category:'Commercial', name:'New Project Estimate', duration:'1 hr', price:'Free',
-      desc:'Facades, retaining structures, and hardscape for commercial sites.'},
-    {id:'com-repair', category:'Commercial', name:'Repair Estimate', duration:'45 min', price:'Free',
-      desc:'Structural or cosmetic repair for commercial masonry and stonework.'}
+    {id:'new-estimate', category:'Residential / Commercial', name:'New Project Estimate', duration:'1 hr', price:'Free',
+      desc:'Patios, walls, veneer, or fireplaces — ground-up stonework for homes or businesses.'},
+    {id:'repair-estimate', category:'Residential / Commercial', name:'Repair Estimate', duration:'45 min', price:'Free',
+      desc:'Cracked mortar, settling walls, or storm damage on existing stonework.'}
   ];
 
   const state = { service:null, date:null, time:null, monthOffset:0 };
@@ -838,6 +929,27 @@
     slotList.innerHTML = '<p class="empty-hint">Available times appear here once you choose a day.</p>';
     slotsHeading.textContent = 'Select a date';
     goToStep(1);
+  });
+
+  // ---------- Quick contact form ----------
+  const quickForm = document.getElementById('quickContactForm');
+  quickForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    if(!quickForm.reportValidity()) return;
+
+    const payload = {
+      formType: 'contact',
+      firstName: document.getElementById('qc-fname').value.trim(),
+      lastName: document.getElementById('qc-lname').value.trim(),
+      contact: document.getElementById('qc-contact').value.trim(),
+      notes: document.getElementById('qc-project').value.trim(),
+      submittedAt: new Date().toISOString()
+    };
+    logBookingToSheet(payload);
+
+    quickForm.reset();
+    quickForm.style.display = 'none';
+    document.getElementById('contactThanks').classList.add('show');
   });
 
   renderCalendar();
