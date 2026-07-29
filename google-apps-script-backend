@@ -1,0 +1,75 @@
+/**
+ * U.S. Stoneworks — booking logger
+ * ---------------------------------
+ * Receives booking submissions from the website's "Confirm Booking" step
+ * and appends each one as a new row in a Google Sheet.
+ *
+ * SETUP
+ * 1. Create a new Google Sheet. Add this header row to the first tab:
+ *    Timestamp | Reference | Service | Category | Date | Time | Duration |
+ *    First Name | Last Name | Phone | Email | Address | Notes
+ * 2. In the Sheet: Extensions > Apps Script. Delete any starter code and
+ *    paste this file's contents in.
+ * 3. Click Deploy > New deployment > select type "Web app".
+ *    - Execute as: Me
+ *    - Who has access: Anyone
+ *    (This is what allows the public booking page to write to the sheet
+ *    without the visitor needing a Google account.)
+ * 4. Copy the deployment's Web app URL (ends in /exec).
+ * 5. Paste that URL into GOOGLE_SHEET_ENDPOINT near the top of the
+ *    <script> block in us-stoneworks.html.
+ * 6. Re-deploy (Deploy > Manage deployments > edit > new version) any time
+ *    you change this script — editing the code alone does not update a
+ *    live deployment.
+ */
+
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = JSON.parse(e.postData.contents);
+
+  if (data.formType === 'contact') {
+    // Quick "Contact Us" form — fewer fields than a full booking.
+    sheet.appendRow([
+      new Date(),
+      'CONTACT',                 // Reference column doubles as a type flag
+      'Quick Contact Form',      // Service
+      '',                        // Category
+      '',                        // Date
+      '',                        // Time
+      '',                        // Duration
+      data.firstName || '',
+      data.lastName || '',
+      data.contact || '',        // Email/phone combined field goes in Phone column
+      '',                        // Email (left blank; see Phone column)
+      '',                        // Address
+      data.notes || '',
+    ]);
+  } else {
+    sheet.appendRow([
+      new Date(),
+      data.reference || '',
+      data.service || '',
+      data.category || '',
+      data.date || '',
+      data.time || '',
+      data.duration || '',
+      data.firstName || '',
+      data.lastName || '',
+      data.phone || '',
+      data.email || '',
+      data.address || '',
+      data.notes || '',
+    ]);
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'ok' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Lets you sanity-check the deployment by opening the /exec URL in a browser.
+function doGet(e) {
+  return ContentService
+    .createTextOutput('U.S. Stoneworks booking endpoint is live.')
+    .setMimeType(ContentService.MimeType.TEXT);
+}
