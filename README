@@ -1,0 +1,51 @@
+# U.S. Stoneworks — Website & Booking Page
+
+A single-page site for U.S. Stoneworks with an interactive, step-by-step
+availability/booking widget (service → date & time → contact details →
+confirmation), SEO metadata, and optional logging of bookings to a Google
+Sheet via Apps Script.
+
+## Files
+
+- `index.html` — the entire site (HTML/CSS/JS, one file, no build step)
+- `google-apps-script-backend.gs` — optional server-side script that logs
+  each booking into a Google Sheet
+
+## Deploy with GitHub Pages (free)
+
+Repo: https://github.com/US-Stoneworks/us-stoneworks
+
+1. **Repo already created** ✅ — `US-Stoneworks/us-stoneworks` on GitHub.
+2. **Upload these files** via *Add file → Upload files* on the repo page:
+   `index.html`, `google-apps-script-backend.gs`, `README.md`. Commit.
+3. **Turn on Pages.** In the repo: *Settings → Pages → Build and
+   deployment → Source: Deploy from a branch → Branch: `main`, folder
+   `/ (root)` → Save.
+4. GitHub will publish the site at:
+   `https://us-stoneworks.github.io/us-stoneworks/`
+   (takes 1–2 minutes on first deploy; every future commit to `main`
+   redeploys it automatically.)
+5. The SEO placeholder URLs (canonical, Open Graph, JSON-LD) in
+   `index.html` are already set to this address — no find/replace needed.
+   Still update the phone/email/address placeholders in the footer and
+   JSON-LD block with the real business details.
+6. **Custom domain (optional).** *Settings → Pages → Custom domain*, add
+   your domain, then create a `CNAME` record at your DNS provider pointing
+   to `us-stoneworks.github.io`. GitHub issues HTTPS automatically once DNS
+   resolves.
+
+## Wiring up booking logs to Google Sheets (optional)
+
+See the setup comment at the top of `google-apps-script-backend.gs`. Once
+deployed, paste the Apps Script Web App `/exec` URL into the
+`GOOGLE_SHEET_ENDPOINT` constant near the top of the `<script>` block in
+`index.html`, commit, and push — bookings will start appending to the
+sheet as rows.
+
+## Notes
+
+- No build tools or dependencies — it's plain HTML/CSS/JS, so GitHub Pages
+  can serve it directly from the repo root.
+- All placeholder content (phone, email, license #, social links, address)
+  is marked in the footer and should be swapped for the real business
+  details before going live.
