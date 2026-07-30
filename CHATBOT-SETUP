@@ -1,0 +1,198 @@
+# U.S. Stoneworks — Quote Chatbot Setup (No Twilio)
+
+Auto-replies to "what's my quote" messages on SMS, WhatsApp, and Email
+with the exact line-item breakdown, e.g.:
+
+```
+734 Rancho Cir
+Fullerton
+
+13 lineal feet Coping Demolition $130
+Scupper Installation, scupper and repair one tile $350
+13 lineal feet Coping with double bullnose, concrete gray color $1,170
+177 lineal feet Concrete Repair, coping. Filling holes / sanding surface
+to make smooth for the steps $1,947
+
+Total: $3,597
+(Quote valid until 9/28/2026)
+
+Email or text us anytime with questions — or visit
+https://us-stoneworks.github.io/us-stoneworks/#contact to reach us
+directly.
+```
+
+**How pricing accuracy is guaranteed:** dollar amounts always come
+straight from the spreadsheet. Claude (Anthropic API) only ever writes
+one warm intro sentence and interprets loosely-worded messages — it
+never generates a number.
+
+**Quote matching needs zero AI.** Finding the right quote for an
+incoming message (`findQuote_` in the script) is plain JavaScript —
+matching a quote number, phone number, email, or address against the
+spreadsheet. The Anthropic API is only called once per reply, to write
+one friendly intro sentence, and that's controlled by a single toggle:
+
+```js
+const USE_AI_INTRO_SENTENCE = true; // set to false: zero Anthropic API calls, ever
+```
+
+Set it to `false` and the bot still finds the correct quote and sends
+the full, accurate price breakdown — it just skips the friendly opening
+line. You can prove this yourself: in the Apps Script editor, run
+`testMatchingWithoutAI()` (function dropdown → select it → Run → View →
+Logs) — it exercises quote matching end-to-end without touching Claude
+at all.
+
+## What changed from the Twilio version
+
+| Channel | Was | Now |
+|---|---|---|
+| WhatsApp | Twilio (BSP, ~$0.005/msg markup on top of Meta's rate) | **Meta's WhatsApp Cloud API, direct** — no BSP, no markup |
+| SMS | Twilio | **SMS Gateway for Android** — free, open source, self-hosted on a spare Android phone + SIM |
+| Email | Gmail polling via Apps Script | Unchanged |
+| AI | Anthropic API | Unchanged |
+
+Trade-off, plainly: both alternatives save the per-message markup and
+avoid a Twilio account, but you do more of the setup yourself, and the
+SMS path depends on a physical phone staying online.
+
+## Files in this delivery
+
+- `quotes-database.xlsx` — same as before (Quotes + Line Items tabs,
+  pre-filled with your real 734 Rancho Cir quote)
+- `chatbot-quotes-and-messaging.gs` — the Apps Script backend (v2, no
+  Twilio dependency)
+- This guide
+
+---
+
+## Part 1 — Quotes Database (same as before)
+
+1. Upload `quotes-database.xlsx` to Google Drive; it converts to a
+   Google Sheet automatically.
+2. Row 2 on the **Quotes** and **Line Items** tabs is your real 734
+   Rancho Cir quote. Add new quotes as new rows on both tabs, matched by
+   Quote ID.
+3. Fill in **Customer Phone** and **Customer Email** on each Quotes row
+   so incoming messages can be matched to the right quote by sender.
+
+## Part 2 — Install the chatbot backend
+
+1. In that Sheet: **Extensions → Apps Script**. Delete any starter code,
+   paste in `chatbot-quotes-and-messaging.gs`.
+2. **Project Settings → Script Properties**, add `ANTHROPIC_API_KEY`
+   (from console.anthropic.com). You'll add four more properties below
+   as you complete Parts 3 and 4.
+3. **Deploy → New deployment → Web app**. Execute as **Me**, access
+   **Anyone**. Deploy, authorize the permissions requested (Sheets +
+   Gmail), and copy the **Web app URL** (ends in `/exec`).
+4. Paste that URL into the `DEPLOYED_WEBAPP_URL` constant near the top
+   of the script (needed for Part 3), then re-deploy (**Deploy → Manage
+   deployments → Edit → New version**).
+
+## Part 3 — SMS via SMS Gateway for Android (self-hosted, free)
+
+This turns a spare Android phone with a SIM card into your SMS sender —
+no monthly platform fee, you just pay for the phone's own cellular plan.
+Project: **sms-gate.app** (open source, Apache-2.0 license).
+
+1. On the Android phone: download the APK from
+   github.com/capcom6/android-sms-gateway/releases and install it
+   (enable "install from unknown sources" first).
+2. Open the app, toggle **Cloud Server** on, tap **Online**. It shows a
+   generated username and password — this is how the cloud relay
+   authenticates requests, since the phone's own IP address can change.
+3. In Apps Script **Script Properties**, add:
+   - `SMSGATE_USERNAME` — from the app
+   - `SMSGATE_PASSWORD` — from the app
+4. In the Apps Script editor's function dropdown, select
+   `registerSmsGatewayWebhook`, click **Run**, authorize if prompted.
+   This tells the SMS Gateway cloud service to forward every incoming
+   SMS to your Apps Script URL.
+5. Text that phone's number from your own phone to test — a reply
+   should arrive within a few seconds.
+
+**Keep in mind:** the phone needs to stay powered on with a network
+connection (Wi-Fi or data) to relay messages, and the project's own docs
+note this isn't intended for high-volume batch sending — carriers may
+throttle a consumer SIM sending a large volume of texts. Fine for a
+typical small contractor's inbound-reply volume; not a bulk marketing
+tool.
+
+## Part 4 — WhatsApp via Meta's Cloud API (direct, no BSP)
+
+This is Meta's own official API — no Twilio or other reseller in the
+middle, so you pay Meta's base rate with no markup, and replies within
+an open 24-hour conversation window are free.
+
+1. Go to developers.facebook.com, create a Meta Developer account if you
+   don't have one, then **My Apps → Create App → Business** type.
+2. Add the **WhatsApp** product to the app. Meta gives you a free test
+   phone number and a temporary access token automatically — good enough
+   to test with immediately, no business verification required yet.
+3. In **WhatsApp → API Setup**, note your **Phone Number ID**.
+4. Generate a **permanent** access token: **Business Settings → Users →
+   System Users → Add** → create a system user → assign your app with
+   `whatsapp_business_messaging` and `whatsapp_business_management`
+   permissions → generate token. (The default temporary token expires in
+   24 hours — you want the permanent one.)
+5. In Apps Script **Script Properties**, add:
+   - `META_WHATSAPP_TOKEN` — the permanent token
+   - `META_PHONE_NUMBER_ID` — from step 3
+   - `META_VERIFY_TOKEN` — make up any string yourself, e.g.
+     `usstoneworks-verify-2026`
+6. Back in the Meta app dashboard: **WhatsApp → Configuration →
+   Webhook**. Callback URL = your Apps Script `/exec` URL. Verify token
+   = the same string you just made up. Meta will send a verification
+   request; the script's `doGet` handles it automatically.
+7. Subscribe the webhook to the **messages** field.
+8. To actually receive real customer messages (not just your own test
+   number), you'll eventually need **Business Verification** in Meta
+   Business Manager — this can take anywhere from same-day to a couple
+   of weeks depending on your documentation. Testing with the free test
+   number works before that's done.
+
+**Compliance note:** Meta's 2026 policy allows task-specific business
+bots (support, sales, quotes — like this one) but disallows open-ended
+"general purpose AI" bots on WhatsApp. This chatbot only ever answers
+quote-lookup questions, so it fits the allowed category — just don't
+repurpose it into an open-ended assistant on this channel.
+
+## Part 5 — Email (unchanged)
+
+1. In the Apps Script editor's function dropdown, select
+   `enableEmailTrigger`, click **Run**, authorize Gmail access.
+2. This checks the inbox every 5 minutes, replies in-thread to anything
+   it can match to a quote, and labels handled emails
+   `Chatbot-Replied` so nothing gets answered twice.
+
+## Matching logic (all three channels, unchanged)
+
+1. Message mentions a quote number (e.g. "388") → matched directly.
+2. Otherwise, sender's phone number or email matches a Quotes row.
+3. Otherwise, the message contains the property address.
+4. No match → the bot asks for the address or quote number instead of
+   guessing, and gives your phone number as a fallback.
+
+## Reply footer
+
+Every reply — whether a quote was found or not — now closes with a line
+confirming email and text are both accepted, plus a link to the
+website's Contact section:
+
+> Email or text us anytime with questions — or visit
+> https://us-stoneworks.github.io/us-stoneworks/#contact to reach us
+> directly.
+
+That URL and the fallback phone number live in two constants near the
+top of the script — `CONTACT_URL` and `CONTACT_PHONE` — update them
+there if the domain or number ever changes.
+
+## Cost summary
+
+| Item | Cost |
+|---|---|
+| SMS Gateway for Android | Free (open source) — only cost is the phone's own SIM/data plan |
+| WhatsApp Cloud API (Meta, direct) | Meta's own per-template rate, no BSP markup — check developers.facebook.com/docs/whatsapp/pricing for current rates |
+| Anthropic API | Pay-per-use — check anthropic.com/pricing |
+| Google Sheets / Apps Script / Gmail | Free |
